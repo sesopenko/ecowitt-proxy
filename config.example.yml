@@ -1,12 +1,14 @@
 targets:
   - name: home-assistant
-    host_addr: http://192.168.1.20
+    host_addr: http://192.168.1.20:8220
     path: /api/webhook/someurl
-    host_port: 8123
   - name: hubitat
     host_addr: http://192.168.1.21
     path: /data
-    host_port: 39501
 server:
   port: 8123
   path: /api/webhook/someurl
+  verbose: false
+  # Set this to true to skip tls verification when sending data to targets.
+  # Don't set this to true in production.
+  tls_insecure_skip_verify: false

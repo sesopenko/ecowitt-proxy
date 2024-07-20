@@ -16,12 +16,13 @@ type Target struct {
 	Name     string `yaml:"name"`
 	HostAddr string `yaml:"host_addr"`
 	Path     string `yaml:"path"`
-	HostPort int    `yaml:"host_port"`
 }
 
 type Server struct {
-	Port int    `yaml:"port"`
-	Path string `yaml:"path"`
+	Port                  int    `yaml:"port"`
+	Path                  string `yaml:"path"`
+	Verbose               bool   `yaml:"verbose"`
+	TlsInsecureSkipVerify bool   `yaml:"tls_insecure_skip_verify"`
 }
 
 // GetConfig reads the YAML file and parses it into a Config struct

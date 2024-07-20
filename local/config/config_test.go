@@ -19,6 +19,8 @@ targets:
 server:
   port: 8123
   path: /api/webhook/someurl
+  verbose: true
+  tls_insecure_skip_verify: true
 `
 
 	reader := strings.NewReader(yamlData)
@@ -33,6 +35,13 @@ server:
 
 	if cfg.Server.Port != 8123 {
 		t.Errorf("Expected server port 8123, got %d", cfg.Server.Port)
+	}
+
+	if cfg.Server.Verbose != true {
+		t.Errorf("Expected verbose true, got %t", cfg.Server.Verbose)
+	}
+	if cfg.Server.TlsInsecureSkipVerify != true {
+		t.Errorf("Expected tls_insecure_skip_verify true, got %t", cfg.Server.TlsInsecureSkipVerify)
 	}
 
 	if cfg.Server.Path != "/api/webhook/someurl" {
