@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 )
 
 // mockHTTPClient is a mock implementation of an HTTP client
@@ -18,6 +17,7 @@ type mockHTTPClient struct {
 	Err      error
 	Requests []*http.Request // Capture requests for verification
 	mu       sync.Mutex      // Ensure thread-safe access to Requests slice
+	wg       *sync.WaitGroup // WaitGroup to signal when a request is done
 }
 
 // Do is the mock implementation of the Do method
@@ -25,6 +25,9 @@ func (m *mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.Requests = append(m.Requests, req) // Capture the request
+	if m.wg != nil {
+		m.wg.Done() // Signal that a request is done
+	}
 	return m.Response, m.Err
 }
 
@@ -46,9 +49,11 @@ func TestSplitter_HandleRequest(t *testing.T) {
 	}
 
 	// Create the mock HTTP client
+	wg := &sync.WaitGroup{}
 	mockClient := &mockHTTPClient{
 		Response: mockResp,
 		Err:      nil,
+		wg:       wg,
 	}
 
 	s := Splitter{
@@ -65,6 +70,9 @@ func TestSplitter_HandleRequest(t *testing.T) {
 	req := httptest.NewRequest("POST", "http://localhost", strings.NewReader(formData.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
+	// Set the number of goroutines to wait for
+	wg.Add(1)
+
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(s.HandleRequest)
 	handler.ServeHTTP(rr, req)
@@ -75,7 +83,7 @@ func TestSplitter_HandleRequest(t *testing.T) {
 	}
 
 	// Wait for all requests to complete
-	time.Sleep(1 * time.Second)
+	wg.Wait()
 
 	// Verify that the forwarded request contains the correct body
 	if len(mockClient.Requests) != 1 {
