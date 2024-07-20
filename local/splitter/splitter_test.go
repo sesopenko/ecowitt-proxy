@@ -29,7 +29,6 @@ func TestSplitter_HandleRequest(t *testing.T) {
 			{
 				Name:     "target1",
 				HostAddr: "https://example.com:8220",
-				Path:     "/api/webhook",
 			},
 		},
 	}
@@ -106,7 +105,6 @@ func TestSplitter_forwardRequest(t *testing.T) {
 			{
 				Name:     "target1",
 				HostAddr: "http://example.com:8220",
-				Path:     "/api/webhook",
 			},
 		},
 	}
