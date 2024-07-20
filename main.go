@@ -17,13 +17,9 @@ import (
 )
 
 func main() {
-	exePath, err := os.Executable()
-	if err != nil {
-		log.Fatalf("Error getting executable path: %v", err)
-	}
 
 	// Get the directory of the executable
-	exeDir := filepath.Dir(exePath)
+	exeDir := filepath.Dir("./")
 
 	// Construct the full path to the config.yml file
 	configPath := filepath.Join(exeDir, "config.yml")
