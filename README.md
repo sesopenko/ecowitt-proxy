@@ -23,9 +23,9 @@ targets:
   - name: ecowitt-to-influx
     host_addr: http://192.168.10.22:20555/data/report/
   # the following is untested for hubitat at this point because I don't have one yet.
+  # based off docs from https://github.com/padus/ecowitt
   - name: hubitat
-    host_addr: http://192.168.1.21/data
-    path: /data
+    host_addr: http://192.168.1.21:39501/data
 
 server:
   path: /api/webhook/someurl
@@ -33,7 +33,6 @@ server:
   # Set this to true to skip tls verification when sending data to targets.
   # Don't set this to true in production.
   tls_insecure_skip_verify: false
-
 ```
 
 Create `config.yml` and enter your own details.  `config.yml` must be in your working directory.
