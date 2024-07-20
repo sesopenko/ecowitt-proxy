@@ -1,10 +1,10 @@
 targets:
   # An example of forwarding to home assistant https://www.home-assistant.io/integrations/ecowitt
   - name: home-assistant
-    host_addr: http://192.168.10.142:8123/api/webhook/12345890jklfd89043jkl
+    host_addr: http://192.168.1.20:8123/api/webhook/12345890jklfd89043jkl
   # an example of forwarding to https://github.com/sesopenko/ecowitt-to-influxdb
   - name: ecowitt-to-influx
-    host_addr: http://192.168.10.22:20555/data/report/
+    host_addr: http://192.168.1.22:20555/data/report/
   # the following is untested for hubitat at this point because I don't have one yet.
   # based off docs from https://github.com/padus/ecowitt
   - name: hubitat
