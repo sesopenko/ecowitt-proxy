@@ -29,10 +29,6 @@ server:
 		t.Fatalf("Expected 2 targets, got %d", len(cfg.Targets))
 	}
 
-	if cfg.Server.Port != 8123 {
-		t.Errorf("Expected server port 8123, got %d", cfg.Server.Port)
-	}
-
 	if cfg.Server.Verbose != true {
 		t.Errorf("Expected verbose true, got %t", cfg.Server.Verbose)
 	}

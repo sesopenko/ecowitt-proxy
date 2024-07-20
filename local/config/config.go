@@ -18,7 +18,6 @@ type Target struct {
 }
 
 type Server struct {
-	Port                  int    `yaml:"port"`
 	Path                  string `yaml:"path"`
 	Verbose               bool   `yaml:"verbose"`
 	TlsInsecureSkipVerify bool   `yaml:"tls_insecure_skip_verify"`
