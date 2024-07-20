@@ -9,13 +9,9 @@ func TestParseConfig(t *testing.T) {
 	yamlData := `
 targets:
   - name: home-assistant
-    host_addr: http://192.168.1.20
-    path: /api/webhook/someurl
-    host_port: 8123
+    host_addr: http://192.168.1.20/api/webhook/someurl
   - name: hubitat
-    host_addr: http://192.168.1.21
-    path: /data
-    host_port: 39501
+    host_addr: http://192.168.1.21/data
 server:
   port: 8123
   path: /api/webhook/someurl
@@ -44,15 +40,11 @@ server:
 		t.Errorf("Expected tls_insecure_skip_verify true, got %t", cfg.Server.TlsInsecureSkipVerify)
 	}
 
-	if cfg.Server.Path != "/api/webhook/someurl" {
-		t.Errorf("Expected server path '/api/webhook/someurl', got '%s'", cfg.Server.Path)
-	}
-
 	if cfg.Targets[0].Name != "home-assistant" {
 		t.Errorf("Expected first target name 'home-assistant', got '%s'", cfg.Targets[0].Name)
 	}
 
-	if cfg.Targets[1].HostAddr != "http://192.168.1.21" {
+	if cfg.Targets[1].HostAddr != "http://192.168.1.21/data" {
 		t.Errorf("Expected second target host_addr 'http://192.168.1.21', got '%s'", cfg.Targets[1].HostAddr)
 	}
 }

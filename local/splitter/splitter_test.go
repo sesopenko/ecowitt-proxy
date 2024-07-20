@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -51,35 +52,51 @@ func TestSplitter_HandleRequest(t *testing.T) {
 		Client: mockClient,
 	}
 
-	// Create a request with real-world GET parameters
-	req := httptest.NewRequest("GET", "http://localhost?baromrelin=888.82&humidityin=52&tempinf=74.2", nil)
-	req.Header.Add("Content-Type", "application/json")
+	// Create a request with real-world POST parameters
+	formData := url.Values{
+		"baromrelin": {"888.82"},
+		"humidityin": {"52"},
+		"tempinf":    {"74.2"},
+	}
+	req := httptest.NewRequest("POST", "http://localhost", strings.NewReader(formData.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	s.HandleRequest(req, nil)
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(s.HandleRequest)
+	handler.ServeHTTP(rr, req)
 
 	// Verify that the request was forwarded correctly
-	if mockClient.Response.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code 200, got %d", mockClient.Response.StatusCode)
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status code 200, got %d", rr.Code)
 	}
 
-	// Verify that the forwarded request contains the correct parameters
+	// Verify that the forwarded request contains the correct body
 	if len(mockClient.Requests) != 1 {
 		t.Fatalf("Expected 1 request, got %d", len(mockClient.Requests))
 	}
 
 	forwardedReq := mockClient.Requests[0]
-	params := forwardedReq.URL.Query()
-
-	if params.Get("baromrelin") != "888.82" {
-		t.Errorf("Expected baromrelin=888.82, got %s", params.Get("baromrelin"))
+	body, err := io.ReadAll(forwardedReq.Body)
+	if err != nil {
+		t.Fatalf("Error reading forwarded request body: %v", err)
 	}
 
-	if params.Get("humidityin") != "52" {
-		t.Errorf("Expected humidityin=52, got %s", params.Get("humidityin"))
+	forwardedReq.Body.Close()
+	forwardedParams, err := url.ParseQuery(string(body))
+	if err != nil {
+		t.Fatalf("Error parsing forwarded request body: %v", err)
 	}
 
-	if params.Get("tempinf") != "74.2" {
-		t.Errorf("Expected tempinf=74.2, got %s", params.Get("tempinf"))
+	if forwardedParams.Get("baromrelin") != "888.82" {
+		t.Errorf("Expected baromrelin=888.82, got %s", forwardedParams.Get("baromrelin"))
+	}
+
+	if forwardedParams.Get("humidityin") != "52" {
+		t.Errorf("Expected humidityin=52, got %s", forwardedParams.Get("humidityin"))
+	}
+
+	if forwardedParams.Get("tempinf") != "74.2" {
+		t.Errorf("Expected tempinf=74.2, got %s", forwardedParams.Get("tempinf"))
 	}
 }
 
@@ -112,9 +129,14 @@ func TestSplitter_forwardRequest(t *testing.T) {
 		Client: mockClient,
 	}
 
-	// Create a request with real-world GET parameters
-	req := httptest.NewRequest("GET", "http://localhost?baromrelin=888.82&humidityin=52&tempinf=74.2", nil)
-	req.Header.Add("Content-Type", "application/json")
+	// Create a request with real-world POST parameters
+	formData := url.Values{
+		"baromrelin": {"888.82"},
+		"humidityin": {"52"},
+		"tempinf":    {"74.2"},
+	}
+	req := httptest.NewRequest("POST", "http://localhost", strings.NewReader(formData.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	target := cfg.Targets[0]
 
@@ -128,23 +150,32 @@ func TestSplitter_forwardRequest(t *testing.T) {
 		t.Errorf("Expected status code 200, got %d", mockClient.Response.StatusCode)
 	}
 
-	// Verify that the forwarded request contains the correct parameters
+	// Verify that the forwarded request contains the correct body
 	if len(mockClient.Requests) != 1 {
 		t.Fatalf("Expected 1 request, got %d", len(mockClient.Requests))
 	}
 
 	forwardedReq := mockClient.Requests[0]
-	params := forwardedReq.URL.Query()
-
-	if params.Get("baromrelin") != "888.82" {
-		t.Errorf("Expected baromrelin=888.82, got %s", params.Get("baromrelin"))
+	body, err := io.ReadAll(forwardedReq.Body)
+	if err != nil {
+		t.Fatalf("Error reading forwarded request body: %v", err)
 	}
 
-	if params.Get("humidityin") != "52" {
-		t.Errorf("Expected humidityin=52, got %s", params.Get("humidityin"))
+	forwardedReq.Body.Close()
+	forwardedParams, err := url.ParseQuery(string(body))
+	if err != nil {
+		t.Fatalf("Error parsing forwarded request body: %v", err)
 	}
 
-	if params.Get("tempinf") != "74.2" {
-		t.Errorf("Expected tempinf=74.2, got %s", params.Get("tempinf"))
+	if forwardedParams.Get("baromrelin") != "888.82" {
+		t.Errorf("Expected baromrelin=888.82, got %s", forwardedParams.Get("baromrelin"))
+	}
+
+	if forwardedParams.Get("humidityin") != "52" {
+		t.Errorf("Expected humidityin=52, got %s", forwardedParams.Get("humidityin"))
+	}
+
+	if forwardedParams.Get("tempinf") != "74.2" {
+		t.Errorf("Expected tempinf=74.2, got %s", forwardedParams.Get("tempinf"))
 	}
 }

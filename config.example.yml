@@ -1,9 +1,9 @@
 targets:
   - name: home-assistant
-    host_addr: http://192.168.1.20:8220
-    path: /api/webhook/someurl
+    host_addr: http://192.168.10.142:8123/api/webhook/12345890jklfd89043jkl
+  # the following is untested for hubitat at this point because I don't have one yet.
   - name: hubitat
-    host_addr: http://192.168.1.21
+    host_addr: http://192.168.1.21/data
     path: /data
 server:
   port: 8123

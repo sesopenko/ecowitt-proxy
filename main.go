@@ -6,7 +6,6 @@ import (
 	"ecowitt-proxy/local/config"
 	"ecowitt-proxy/local/splitter"
 	"fmt"
-	"github.com/elazarl/goproxy"
 	"log"
 	"net/http"
 	"os"
@@ -17,7 +16,6 @@ import (
 )
 
 func main() {
-
 	// Get the directory of the executable
 	exeDir := filepath.Dir("./")
 
@@ -33,11 +31,6 @@ func main() {
 	// Print the loaded configuration
 	fmt.Printf("Config: %+v\n", cfg)
 
-	proxy := goproxy.NewProxyHttpServer()
-	if cfg.Server.Verbose {
-		proxy.Verbose = true
-	}
-
 	// Create the HTTP client
 	client := buildClient(cfg)
 
@@ -47,15 +40,14 @@ func main() {
 		Client: client,
 	}
 
-	// Set up the request forwarding
-	proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
-	proxy.OnRequest().DoFunc(s.HandleRequest)
+	// Set up the HTTP server
+	mux := http.NewServeMux()
+	mux.HandleFunc(cfg.Server.Path, s.HandleRequest)
 
-	// Create the server
 	listenAddr := fmt.Sprintf(":%d", cfg.Server.Port)
 	server := &http.Server{
 		Addr:    listenAddr,
-		Handler: proxy,
+		Handler: mux,
 	}
 
 	// Channel to listen for interrupt signals

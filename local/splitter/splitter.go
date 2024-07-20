@@ -2,10 +2,11 @@ package splitter
 
 import (
 	"ecowitt-proxy/local/config"
-	"github.com/elazarl/goproxy"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // HTTPClient interface to allow injecting a mock client
@@ -20,14 +21,15 @@ type Splitter struct {
 }
 
 // HandleRequest forwards the request to multiple targets
-func (s Splitter) HandleRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+func (s Splitter) HandleRequest(w http.ResponseWriter, req *http.Request) {
 	for _, target := range s.Config.Targets {
 		err := s.forwardRequest(req, target)
 		if err != nil {
 			log.Printf("Error forwarding request to %s: %v", target.Name, err)
 		}
 	}
-	return req, nil
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Request forwarded to all targets"))
 }
 
 // forwardRequest creates and sends a request to the specified target
@@ -37,7 +39,7 @@ func (s Splitter) forwardRequest(req *http.Request, target config.Target) error 
 		return err
 	}
 
-	// Add original query parameters to the new URL
+	// Add original query parameters to the new URL if present
 	query := proxyURL.Query()
 	for key, values := range req.URL.Query() {
 		for _, value := range values {
@@ -45,9 +47,18 @@ func (s Splitter) forwardRequest(req *http.Request, target config.Target) error 
 		}
 	}
 	proxyURL.RawQuery = query.Encode()
-	proxyURL.Path = target.Path
 
-	proxyReq, err := http.NewRequestWithContext(req.Context(), req.Method, proxyURL.String(), req.Body)
+	// Create a new request with the same method and headers
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return err
+	}
+	bodyRead := string(body)
+	s.log("body: %s", bodyRead)
+
+	req.Body = io.NopCloser(strings.NewReader(bodyRead)) // Reset the body for reuse
+
+	proxyReq, err := http.NewRequestWithContext(req.Context(), req.Method, proxyURL.String(), io.NopCloser(strings.NewReader(string(body))))
 	if err != nil {
 		return err
 	}
@@ -58,13 +69,21 @@ func (s Splitter) forwardRequest(req *http.Request, target config.Target) error 
 			proxyReq.Header.Add(header, value)
 		}
 	}
+	proxyReq.Header.Add("X-ECOWITT-PROXY-TARGET", target.Name)
+	s.log("request url: %s", proxyReq.URL.String())
 
 	resp, err := s.Client.Do(proxyReq)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+	s.log("Forwarded request to %s, received response: %s", target.Name, resp.Status)
 
-	log.Printf("Forwarded request to %s, received response: %s", target.Name, resp.Status)
 	return nil
+}
+
+func (s Splitter) log(format string, v ...any) {
+	if s.Config.Server.Verbose {
+		log.Printf(format, v...)
+	}
 }

@@ -15,7 +15,6 @@ type Config struct {
 type Target struct {
 	Name     string `yaml:"name"`
 	HostAddr string `yaml:"host_addr"`
-	Path     string `yaml:"path"`
 }
 
 type Server struct {
