@@ -53,6 +53,7 @@ version: '3.8'
 services:
   ecowitt-proxy:
     image: sesopenko/ecowitt-proxy
+    restart: unless-stopped
     ports:
       - "8123:8123"
     volumes:
