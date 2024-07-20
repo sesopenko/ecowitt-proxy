@@ -7,7 +7,9 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 // mockHTTPClient is a mock implementation of an HTTP client
@@ -15,10 +17,13 @@ type mockHTTPClient struct {
 	Response *http.Response
 	Err      error
 	Requests []*http.Request // Capture requests for verification
+	mu       sync.Mutex      // Ensure thread-safe access to Requests slice
 }
 
 // Do is the mock implementation of the Do method
 func (m *mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Requests = append(m.Requests, req) // Capture the request
 	return m.Response, m.Err
 }
@@ -69,10 +74,16 @@ func TestSplitter_HandleRequest(t *testing.T) {
 		t.Errorf("Expected status code 200, got %d", rr.Code)
 	}
 
+	// Wait for all requests to complete
+	time.Sleep(1 * time.Second)
+
 	// Verify that the forwarded request contains the correct body
 	if len(mockClient.Requests) != 1 {
 		t.Fatalf("Expected 1 request, got %d", len(mockClient.Requests))
 	}
+
+	mockClient.mu.Lock()
+	defer mockClient.mu.Unlock()
 
 	forwardedReq := mockClient.Requests[0]
 	body, err := io.ReadAll(forwardedReq.Body)
@@ -138,7 +149,12 @@ func TestSplitter_forwardRequest(t *testing.T) {
 
 	target := cfg.Targets[0]
 
-	err := s.forwardRequest(req, target)
+	o, err := buildOriginal(req)
+	if err != nil {
+		t.Errorf("Failed to build original from req: %s", err)
+	}
+
+	err = s.forwardRequest(o, target)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -152,6 +168,9 @@ func TestSplitter_forwardRequest(t *testing.T) {
 	if len(mockClient.Requests) != 1 {
 		t.Fatalf("Expected 1 request, got %d", len(mockClient.Requests))
 	}
+
+	mockClient.mu.Lock()
+	defer mockClient.mu.Unlock()
 
 	forwardedReq := mockClient.Requests[0]
 	body, err := io.ReadAll(forwardedReq.Body)
