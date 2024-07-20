@@ -61,7 +61,7 @@ services:
 
 # Licensed GNU GPL V3
 
-This software is under the GNU GENERAL PUBLIC LICENSE VERSION 3. The license can be read in [LICENSE](LICENSE.txt). If
+This software is under the GNU GENERAL PUBLIC LICENSE VERSION 3. The license can be read in [LICENSE](https://github.com/sesopenko/ecowitt-proxy/blob/main/LICENSE.txt). If
 the license isn't included you may read it at
 [https://www.gnu.org/licenses/gpl-3.0.txt](https://www.gnu.org/licenses/gpl-3.0.txt)
 
