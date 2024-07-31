@@ -26,6 +26,9 @@ targets:
   # based off docs from https://github.com/padus/ecowitt
   - name: hubitat
     host_addr: http://192.168.1.21:39501/data
+  # an example of forwarding to ecowitt2mqtt https://github.com/bachya/ecowitt2mqtt
+  - name: ecowitt2mqtt
+    host_addr: http://192.168.1.23:8080/data/report/
 
 server:
   path: /api/webhook/someurl
